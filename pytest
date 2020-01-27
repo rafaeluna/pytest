@@ -1,0 +1,66 @@
+#!/usr/local/opt/python/bin/python3.7
+
+'''
+Builds unit test for a given python module
+'''
+
+import os
+import sys
+import inspect
+import importlib.util
+
+TAB_PREF = "spaces"
+TAB_SIZE = 4
+
+TAB = TAB_SIZE*" " if TAB_PREF == "spaces" else "\t"
+
+def main():
+    '''
+    Gets filename and extensions,
+    checks if it's a python file,
+    dynamically imports the module for inspecting it
+    loads all functions and buids a string which is later written to a file
+    '''
+
+    # Get filename
+    file = sys.argv[1]
+    file_parts = file.split(".")
+
+    # Get file extension by grabbing last list item
+    extension = file_parts[-1]
+    # Get file name by excluding extension (exclude last item by pop)
+    file_parts.pop()
+    filename = "".join(file_parts)
+
+    if extension != "py":
+        raise Exception("File is not a python script")
+
+    # Dynamically import given module
+    # Specify path
+    spec = importlib.util.spec_from_file_location(filename, os.path.join(os.getcwd(), file))
+    # Load module
+    module = importlib.util.module_from_spec(spec)
+    # Execute module to memory
+    spec.loader.exec_module(module)
+    # Filiter all functions
+    functions = [m[0] for m in inspect.getmembers(module) if inspect.isfunction(m[1])]
+
+    # Setup strings
+    class_name = filename.replace("_", " ").title()
+    class_name = "".join(class_name)
+
+    # Build file text
+    # Setup imports and unittest class
+    file_text = f"import unittest\nimport {filename}\n"
+    file_text = "\nclass Test{class_name}(unittest.TestCase):\n"
+    # Setup test for all classes
+    for function in functions:
+        file_text += f"\n{TAB}def test_{function}(self):\n{TAB*2}pass\n"
+
+    # Setup ability to run from editor
+    file_text += f"\nif __name__ == \"__main__\":\n{TAB}unittest.main()\n"
+
+    with open(f"test_{filename}.py", "w") as file:
+        file.write(file_text)
+
+main()
