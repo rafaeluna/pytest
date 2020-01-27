@@ -1,4 +1,4 @@
-#!/usr/local/opt/python/bin/python3.7
+#!/usr/bin/env python3
 
 '''
 Builds unit test for a given python module
@@ -52,7 +52,8 @@ def main():
     # Build file text
     # Setup imports and unittest class
     file_text = f"import unittest\nimport {filename}\n"
-    file_text = "\nclass Test{class_name}(unittest.TestCase):\n"
+    print(file_text)
+    file_text += f"\nclass Test{class_name}(unittest.TestCase):\n"
     # Setup test for all classes
     for function in functions:
         file_text += f"\n{TAB}def test_{function}(self):\n{TAB*2}pass\n"
